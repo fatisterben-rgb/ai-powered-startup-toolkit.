@@ -461,11 +461,14 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:8000/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ problem, solution, theme_id: selectedTheme }),
-      });
+      const res = await fetch(
+        "https://ai-powered-startup-toolkit-14.onrender.com/api/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ problem, solution, theme_id: selectedTheme }),
+        },
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err?.detail || "Request failed");
