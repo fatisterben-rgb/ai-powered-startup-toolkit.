@@ -1,12 +1,12 @@
 # ── stdlib ────────────────────────────────────────────────────────────────────
 import os
 import logging
- 
+
 # ── third-party ───────────────────────────────────────────────────────────────
 import uvicorn
 from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
@@ -93,6 +93,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 #  META
 # ═════════════════════════════════════════════════════════════════════════════
 
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
+
+
 @app.get("/health", tags=["Meta"], summary="Liveness probe")
 def health():
     return {
@@ -161,16 +166,17 @@ Respond ONLY with a valid JSON object — no markdown, no backticks, no explanat
 }}"""
 
     from groq import Groq
-    client = Groq()  # picks up GROQ_API_KEY from environment
+    import json
+    client = Groq()
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
-    import json
     raw = response.choices[0].message.content.strip()
     clean = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(clean)
+
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  AI PITCH DECK  –  /api/*
@@ -334,7 +340,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=int(os.environ.get("PORT", 8000)),
         reload=True,
         log_level="info",
     )
